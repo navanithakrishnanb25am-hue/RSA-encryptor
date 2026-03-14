@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>RSA Cybersecurity Lab</title>
+
+<style>
+
+body{
+margin:0;
+font-family:Arial;
+background:black;
+color:white;
+overflow-x:hidden;
+}
+
+/* MATRIX BACKGROUND */
+
+canvas#matrix{
+position:fixed;
+top:0;
+left:0;
+z-index:-1;
+}
+
+/* HEADER */
+
+header{
+text-align:center;
+padding:20px;
+font-size:30px;
+color:#00fff7;
+text-shadow:0 0 20px cyan;
+}
+
+/* TABS */
+
+.tabs{
+display:flex;
+justify-content:center;
+background:#111;
+}
+
+.tabs button{
+padding:15px 30px;
+border:none;
+background:#111;
+color:white;
+cursor:pointer;
+font-size:16px;
+}
+
+.tabs button:hover{
+background:#00adb5;
+}
+
+/* CONTENT */
+
+.tabcontent{
+display:none;
+padding:40px;
+}
+
+/* GLASS BOX */
+
+.box{
+background:rgba(255,255,255,0.05);
+backdrop-filter:blur(10px);
+padding:30px;
+border-radius:10px;
+width:70%;
+margin:auto;
+box-shadow:0 0 30px black;
+}
+
+/* INPUT */
+
+input,textarea{
+width:70%;
+padding:10px;
+margin:10px;
+border-radius:5px;
+border:none;
+}
+
+/* BUTTON */
+
+button.action{
+padding:10px 20px;
+margin:10px;
+background:#00adb5;
+border:none;
+color:white;
+cursor:pointer;
+border-radius:5px;
+}
+
+button.action:hover{
+background:#00fff7;
+color:black;
+}
+
+/* TEXT ANIMATION */
+
+.anim{
+font-size:20px;
+color:#00fff7;
+margin:10px;
+}
+
+/* HACKER */
+
+#hacklog{
+background:black;
+color:#00ff00;
+padding:20px;
+height:200px;
+overflow:auto;
+font-family:monospace;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<canvas id="matrix"></canvas>
+
+<header>🔐 RSA CYBERSECURITY LAB</header>
+
+<div class="tabs">
+
+<button onclick="openTab('encrypt')">Encryption</button>
+<button onclick="openTab('decrypt')">Decryption</button>
+<button onclick="openTab('graph')">Graph</button>
+<button onclick="openTab('hack')">Hacker Simulation</button>
+
+</div>
+
+<!-- ENCRYPT -->
+
+<div id="encrypt" class="tabcontent">
+
+<div class="box">
+
+<h2>Encrypt Message</h2>
+
+<input id="message" placeholder="Enter message">
+
+<br>
+
+<button class="action" onclick="generateKeys()">Generate Keys</button>
+
+<p id="keys"></p>
+
+<button class="action" onclick="encrypt()">Encrypt</button>
+
+<div id="animation" class="anim"></div>
+
+<textarea id="encrypted" rows="4"></textarea>
+
+<br>
+
+<button class="action" onclick="download()">Download Cipher</button>
+
+</div>
+
+</div>
+
+<!-- DECRYPT -->
+
+<div id="decrypt" class="tabcontent">
+
+<div class="box">
+
+<h2>Decrypt Message</h2>
+
+<textarea id="cipher" rows="4"></textarea>
+
+<br>
+
+<button class="action" onclick="decrypt()">Decrypt</button>
+
+<div id="animation2" class="anim"></div>
+
+<textarea id="decrypted" rows="4"></textarea>
+
+</div>
+
+</div>
+
+<!-- GRAPH -->
+
+<div id="graph" class="tabcontent">
+
+<div class="box">
+
+<h2>Encryption Visualization</h2>
+
+<canvas id="graphcanvas" width="500" height="250"></canvas>
+
+<button class="action" onclick="drawGraph()">Show Graph</button>
+
+</div>
+
+</div>
+
+<!-- HACKER -->
+
+<div id="hack" class="tabcontent">
+
+<div class="box">
+
+<h2>Hacker Attack Simulation</h2>
+
+<button class="action" onclick="startHack()">Start Attack</button>
+
+<div id="hacklog"></div>
+
+</div>
+
+</div>
+
+<script>
+
+/* TAB */
+
+function openTab(tab){
+
+document.querySelectorAll(".tabcontent")
+.forEach(t=>t.style.display="none");
+
+document.getElementById(tab).style.display="block";
+
+}
+
+openTab("encrypt");
+
+/* RSA */
+
+let e,d,n;
+let encryptedData=[];
+
+function gcd(a,b){
+while(b!=0){
+let t=b;
+b=a%b;
+a=t;
+}
+return a;
+}
+
+function generatePrime(){
+
+let primes=[11,13,17,19,23,29,31,37,41];
+
+return primes[Math.floor(Math.random()*primes.length)];
+
+}
+
+function generateKeys(){
+
+let p=generatePrime();
+let q=generatePrime();
+
+n=p*q;
+
+let phi=(p-1)*(q-1);
+
+e=3;
+
+while(gcd(e,phi)!=1){
+e+=2;
+}
+
+for(let i=1;i<phi;i++){
+if((i*e)%phi==1){
+d=i;
+break;
+}
+}
+
+document.getElementById("keys").innerHTML=
+"Public Key (e,n): ("+e+","+n+")<br>Private Key (d,n): ("+d+","+n+")";
+
+}
+
+/* MODULAR POWER */
+
+function modPow(base,exp,mod){
+
+let result=1;
+
+base=base%mod;
+
+while(exp>0){
+
+if(exp%2==1)
+result=(result*base)%mod;
+
+exp=Math.floor(exp/2);
+
+base=(base*base)%mod;
+
+}
+
+return result;
+
+}
+
+/* ENCRYPT */
+
+function encrypt(){
+
+let msg=document.getElementById("message").value;
+
+encryptedData=[];
+
+let anim="";
+
+for(let i=0;i<msg.length;i++){
+
+let m=msg.charCodeAt(i);
+
+let c=modPow(m,e,n);
+
+encryptedData.push(c);
+
+anim+=msg[i]+" → "+c+" | ";
+
+}
+
+document.getElementById("animation").innerHTML=anim;
+
+document.getElementById("encrypted").value=encryptedData;
+
+/* AUTO TRANSFER */
+
+document.getElementById("cipher").value=encryptedData;
+
+}
+
+/* DECRYPT */
+
+function decrypt(){
+
+let data=document.getElementById("cipher").value.split(",");
+
+let result="";
+
+let anim="";
+
+for(let num of data){
+
+num=parseInt(num.trim());
+
+let m=modPow(num,d,n);
+
+let ch=String.fromCharCode(m);
+
+result+=ch;
+
+anim+=num+" → "+ch+" | ";
+
+}
+
+document.getElementById("animation2").innerHTML=anim;
+
+document.getElementById("decrypted").value=result;
+
+}
+
+/* GRAPH */
+
+function drawGraph(){
+
+let canvas=document.getElementById("graphcanvas");
+
+let ctx=canvas.getContext("2d");
+
+ctx.clearRect(0,0,500,250);
+
+ctx.beginPath();
+
+for(let i=0;i<encryptedData.length;i++){
+
+let x=i*40+30;
+
+let y=250-encryptedData[i];
+
+ctx.lineTo(x,y);
+
+ctx.arc(x,y,3,0,2*Math.PI);
+
+}
+
+ctx.stroke();
+
+}
+
+/* DOWNLOAD */
+
+function download(){
+
+let text=document.getElementById("encrypted").value;
+
+let blob=new Blob([text],{type:"text/plain"});
+
+let a=document.createElement("a");
+
+a.href=URL.createObjectURL(blob);
+
+a.download="cipher.txt";
+
+a.click();
+
+}
+
+/* HACKER SIMULATION */
+
+function startHack(){
+
+let log=document.getElementById("hacklog");
+
+log.innerHTML="";
+
+let i=1;
+
+let interval=setInterval(()=>{
+
+log.innerHTML+="Trying factor "+i+"...<br>";
+
+log.scrollTop=log.scrollHeight;
+
+if(i>n){
+
+log.innerHTML+="<br>Attack failed. RSA secure.<br>";
+
+clearInterval(interval);
+
+}
+
+i++;
+
+},100);
+
+}
+
+/* MATRIX BACKGROUND */
+
+let canvas=document.getElementById("matrix");
+
+let ctx=canvas.getContext("2d");
+
+canvas.height=window.innerHeight;
+canvas.width=window.innerWidth;
+
+let letters="01";
+letters=letters.split("");
+
+let fontSize=14;
+
+let columns=canvas.width/fontSize;
+
+let drops=[];
+
+for(let x=0;x<columns;x++)
+drops[x]=1;
+
+function draw(){
+
+ctx.fillStyle="rgba(0,0,0,0.05)";
+ctx.fillRect(0,0,canvas.width,canvas.height);
+
+ctx.fillStyle="#0f0";
+ctx.font=fontSize+"px monospace";
+
+for(let i=0;i<drops.length;i++){
+
+let text=letters[Math.floor(Math.random()*letters.length)];
+
+ctx.fillText(text,i*fontSize,drops[i]*fontSize);
+
+if(drops[i]*fontSize>canvas.height && Math.random()>0.975)
+drops[i]=0;
+
+drops[i]++;
+
+}
+
+}
+
+setInterval(draw,33);
+
+</script>
+
+</body>
+</html>
