@@ -1,496 +1,336 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>RSA Cybersecurity Lab</title>
+<title>RSA Secure System</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 
+/* 🌌 Animated Background */
 body{
 margin:0;
-font-family:Arial;
-background:black;
+font-family:'Segoe UI';
+background:linear-gradient(-45deg,#0f2027,#203a43,#2c5364,#1c1c1c);
+background-size:400% 400%;
+animation:bgMove 10s infinite alternate;
 color:white;
 overflow-x:hidden;
 }
 
-/* MATRIX BACKGROUND */
-
-canvas#matrix{
-position:fixed;
-top:0;
-left:0;
-z-index:-1;
+@keyframes bgMove{
+0%{background-position:0% 50%;}
+100%{background-position:100% 50%;}
 }
 
-/* HEADER */
-
+/* Header */
 header{
 text-align:center;
 padding:20px;
-font-size:30px;
+font-size:28px;
 color:#00fff7;
-text-shadow:0 0 20px cyan;
+letter-spacing:1px;
 }
 
-/* TABS */
-
+/* Tabs */
 .tabs{
 display:flex;
 justify-content:center;
-background:#111;
+gap:10px;
+margin-bottom:10px;
 }
 
 .tabs button{
-padding:15px 30px;
+padding:12px 25px;
 border:none;
-background:#111;
+background:rgba(255,255,255,0.1);
 color:white;
 cursor:pointer;
-font-size:16px;
+border-radius:8px;
+transition:0.3s;
+backdrop-filter:blur(5px);
 }
 
 .tabs button:hover{
 background:#00adb5;
+transform:scale(1.05);
 }
 
-/* CONTENT */
-
+/* Tab Content */
 .tabcontent{
 display:none;
-padding:40px;
+padding:30px;
+animation:fade 0.5s ease;
 }
 
-/* GLASS BOX */
+@keyframes fade{
+from{opacity:0; transform:translateY(20px);}
+to{opacity:1;}
+}
 
+/* Glass Card */
 .box{
-background:rgba(255,255,255,0.05);
-backdrop-filter:blur(10px);
+background:rgba(255,255,255,0.08);
 padding:30px;
-border-radius:10px;
+border-radius:15px;
 width:70%;
 margin:auto;
-box-shadow:0 0 30px black;
+box-shadow:0 0 20px rgba(0,0,0,0.6);
+backdrop-filter:blur(10px);
+transition:0.3s;
 }
 
-/* INPUT */
+.box:hover{
+transform:translateY(-5px);
+}
 
+/* Inputs */
 input,textarea{
 width:70%;
-padding:10px;
+padding:12px;
 margin:10px;
-border-radius:5px;
+border-radius:8px;
 border:none;
+outline:none;
+background:rgba(255,255,255,0.1);
+color:white;
+transition:0.3s;
 }
 
-/* BUTTON */
+input:focus,textarea:focus{
+background:rgba(0,255,247,0.2);
+box-shadow:0 0 10px #00fff7;
+}
 
-button.action{
-padding:10px 20px;
+/* Buttons */
+button{
+padding:12px 20px;
 margin:10px;
 background:#00adb5;
 border:none;
 color:white;
 cursor:pointer;
-border-radius:5px;
+border-radius:8px;
+transition:0.3s;
 }
 
-button.action:hover{
+button:hover{
 background:#00fff7;
 color:black;
+box-shadow:0 0 15px #00fff7;
+transform:scale(1.05);
 }
 
-/* TEXT ANIMATION */
-
-.anim{
-font-size:20px;
-color:#00fff7;
-margin:10px;
+/* Stats */
+.stats{
+margin-top:20px;
+background:rgba(255,255,255,0.1);
+padding:15px;
+border-radius:10px;
 }
 
-/* HACKER */
+/* Floating particles */
+.particle{
+position:fixed;
+width:5px;
+height:5px;
+background:white;
+opacity:0.3;
+border-radius:50%;
+animation:float 10s linear infinite;
+}
 
-#hacklog{
-background:black;
-color:#00ff00;
-padding:20px;
-height:200px;
-overflow:auto;
-font-family:monospace;
+@keyframes float{
+0%{transform:translateY(100vh);}
+100%{transform:translateY(-10vh);}
 }
 
 </style>
-
 </head>
 
 <body>
 
-<canvas id="matrix"></canvas>
-
-<header>🔐 RSA CYBERSECURITY LAB</header>
+<header>🔐 RSA Secure Communication System</header>
 
 <div class="tabs">
-
-<button onclick="openTab('encrypt')">Encryption</button>
-<button onclick="openTab('decrypt')">Decryption</button>
-<button onclick="openTab('graph')">Graph</button>
-<button onclick="openTab('hack')">Hacker Simulation</button>
-
+<button onclick="openTab('encrypt')">Encrypt & Send</button>
+<button onclick="openTab('decrypt')">Decrypt</button>
+<button onclick="openTab('analysis')">Analysis</button>
 </div>
 
 <!-- ENCRYPT -->
-
 <div id="encrypt" class="tabcontent">
-
 <div class="box">
 
-<h2>Encrypt Message</h2>
+<h2>Sender</h2>
 
 <input id="message" placeholder="Enter message">
+<input id="receiver" placeholder="Receiver Email">
 
-<br>
-
-<button class="action" onclick="generateKeys()">Generate Keys</button>
-
+<button onclick="generateKeys()">Generate Keys</button>
 <p id="keys"></p>
 
-<button class="action" onclick="encrypt()">Encrypt</button>
+<button onclick="encrypt()">Encrypt</button>
+<textarea id="encrypted"></textarea>
 
-<div id="animation" class="anim"></div>
-
-<textarea id="encrypted" rows="4"></textarea>
-
-<br>
-
-<button class="action" onclick="download()">Download Cipher</button>
+<button onclick="sendEmail()">Send Email</button>
 
 </div>
-
 </div>
 
 <!-- DECRYPT -->
-
 <div id="decrypt" class="tabcontent">
-
 <div class="box">
 
-<h2>Decrypt Message</h2>
+<h2>Receiver</h2>
 
-<textarea id="cipher" rows="4"></textarea>
-
-<br>
-
-<button class="action" onclick="decrypt()">Decrypt</button>
-
-<div id="animation2" class="anim"></div>
-
-<textarea id="decrypted" rows="4"></textarea>
+<textarea id="cipher"></textarea>
+<button onclick="decrypt()">Decrypt</button>
+<textarea id="decrypted"></textarea>
 
 </div>
-
 </div>
 
-<!-- GRAPH -->
-
-<div id="graph" class="tabcontent">
-
+<!-- ANALYSIS -->
+<div id="analysis" class="tabcontent">
 <div class="box">
 
-<h2>Encryption Visualization</h2>
+<h2>Graph Analysis</h2>
+<canvas id="graph"></canvas>
+<button onclick="drawGraph()">Generate</button>
 
-<canvas id="graphcanvas" width="500" height="250"></canvas>
-
-<button class="action" onclick="drawGraph()">Show Graph</button>
-
-</div>
+<div class="stats" id="stats"></div>
 
 </div>
-
-<!-- HACKER -->
-
-<div id="hack" class="tabcontent">
-
-<div class="box">
-
-<h2>Hacker Attack Simulation</h2>
-
-<button class="action" onclick="startHack()">Start Attack</button>
-
-<div id="hacklog"></div>
-
-</div>
-
 </div>
 
 <script>
 
-/* TAB */
-
+/* Tabs */
 function openTab(tab){
-
-document.querySelectorAll(".tabcontent")
-.forEach(t=>t.style.display="none");
-
+document.querySelectorAll(".tabcontent").forEach(t=>t.style.display="none");
 document.getElementById(tab).style.display="block";
-
 }
-
 openTab("encrypt");
 
-/* RSA */
-
+/* RSA LOGIC (UNCHANGED) */
 let e,d,n;
 let encryptedData=[];
 
-function gcd(a,b){
-while(b!=0){
-let t=b;
-b=a%b;
-a=t;
-}
-return a;
-}
+function gcd(a,b){while(b!=0){let t=b;b=a%b;a=t;}return a;}
 
 function generatePrime(){
-
-let primes=[11,13,17,19,23,29,31,37,41];
-
+let primes=[11,13,17,19,23,29];
 return primes[Math.floor(Math.random()*primes.length)];
-
 }
 
 function generateKeys(){
-
-let p=generatePrime();
-let q=generatePrime();
-
+let p=generatePrime(), q=generatePrime();
 n=p*q;
-
 let phi=(p-1)*(q-1);
 
 e=3;
-
-while(gcd(e,phi)!=1){
-e+=2;
-}
+while(gcd(e,phi)!=1) e+=2;
 
 for(let i=1;i<phi;i++){
-if((i*e)%phi==1){
-d=i;
-break;
-}
+if((i*e)%phi==1){d=i;break;}
 }
 
-document.getElementById("keys").innerHTML=
-"Public Key (e,n): ("+e+","+n+")<br>Private Key (d,n): ("+d+","+n+")";
-
+document.getElementById("keys").innerHTML=`Public: (${e},${n})<br>Private: (${d},${n})`;
 }
-
-/* MODULAR POWER */
 
 function modPow(base,exp,mod){
-
 let result=1;
-
-base=base%mod;
-
+base%=mod;
 while(exp>0){
-
-if(exp%2==1)
-result=(result*base)%mod;
-
+if(exp%2==1) result=(result*base)%mod;
 exp=Math.floor(exp/2);
-
 base=(base*base)%mod;
-
 }
-
 return result;
-
 }
-
-/* ENCRYPT */
 
 function encrypt(){
-
 let msg=document.getElementById("message").value;
-
 encryptedData=[];
-
-let anim="";
-
-for(let i=0;i<msg.length;i++){
-
-let m=msg.charCodeAt(i);
-
-let c=modPow(m,e,n);
-
-encryptedData.push(c);
-
-anim+=msg[i]+" → "+c+" | ";
-
+for(let ch of msg){
+encryptedData.push(modPow(ch.charCodeAt(0),e,n));
 }
-
-document.getElementById("animation").innerHTML=anim;
-
 document.getElementById("encrypted").value=encryptedData;
-
-/* AUTO TRANSFER */
-
 document.getElementById("cipher").value=encryptedData;
-
 }
-
-/* DECRYPT */
 
 function decrypt(){
-
 let data=document.getElementById("cipher").value.split(",");
-
 let result="";
-
-let anim="";
-
 for(let num of data){
-
-num=parseInt(num.trim());
-
-let m=modPow(num,d,n);
-
-let ch=String.fromCharCode(m);
-
-result+=ch;
-
-anim+=num+" → "+ch+" | ";
-
+result+=String.fromCharCode(modPow(parseInt(num),d,n));
+}
+document.getElementById("decrypted").value=result;
 }
 
-document.getElementById("animation2").innerHTML=anim;
+/* EMAIL */
+function sendEmail(){
 
-document.getElementById("decrypted").value=result;
+let receiver=document.getElementById("receiver").value;
+let message=document.getElementById("encrypted").value;
+
+fetch("http://127.0.0.1:5000/send",{
+method:"POST",
+headers:{ "Content-Type":"application/json" },
+body:JSON.stringify({receiver,message})
+})
+.then(res=>res.json())
+.then(data=>{
+if(data.status==="success"){
+alert("✅ Email Sent!");
+}else{
+alert("❌ "+data.msg);
+}
+})
+.catch(()=>{
+alert("❌ Server not reachable!");
+});
 
 }
 
 /* GRAPH */
+let chart;
 
 function drawGraph(){
 
-let canvas=document.getElementById("graphcanvas");
+let ctx=document.getElementById("graph").getContext("2d");
 
-let ctx=canvas.getContext("2d");
+if(chart) chart.destroy();
 
-ctx.clearRect(0,0,500,250);
+chart=new Chart(ctx,{
+type:"line",
+data:{
+labels: encryptedData.map((_,i)=>"Char "+(i+1)),
+datasets:[{label:"Encrypted Values",data:encryptedData}]
+}
+});
 
-ctx.beginPath();
+let sum=encryptedData.reduce((a,b)=>a+b,0);
+let mean=sum/encryptedData.length;
+let variance=encryptedData.reduce((a,b)=>a+(b-mean)**2,0)/encryptedData.length;
+let std=Math.sqrt(variance);
 
-for(let i=0;i<encryptedData.length;i++){
-
-let x=i*40+30;
-
-let y=250-encryptedData[i];
-
-ctx.lineTo(x,y);
-
-ctx.arc(x,y,3,0,2*Math.PI);
+document.getElementById("stats").innerHTML=
+`Mean: ${mean.toFixed(2)}<br>
+Variance: ${variance.toFixed(2)}<br>
+Std Dev: ${std.toFixed(2)}`;
 
 }
 
-ctx.stroke();
-
+/* PARTICLES */
+for(let i=0;i<30;i++){
+let p=document.createElement("div");
+p.className="particle";
+p.style.left=Math.random()*100+"vw";
+p.style.animationDuration=(5+Math.random()*10)+"s";
+document.body.appendChild(p);
 }
-
-/* DOWNLOAD */
-
-function download(){
-
-let text=document.getElementById("encrypted").value;
-
-let blob=new Blob([text],{type:"text/plain"});
-
-let a=document.createElement("a");
-
-a.href=URL.createObjectURL(blob);
-
-a.download="cipher.txt";
-
-a.click();
-
-}
-
-/* HACKER SIMULATION */
-
-function startHack(){
-
-let log=document.getElementById("hacklog");
-
-log.innerHTML="";
-
-let i=1;
-
-let interval=setInterval(()=>{
-
-log.innerHTML+="Trying factor "+i+"...<br>";
-
-log.scrollTop=log.scrollHeight;
-
-if(i>n){
-
-log.innerHTML+="<br>Attack failed. RSA secure.<br>";
-
-clearInterval(interval);
-
-}
-
-i++;
-
-},100);
-
-}
-
-/* MATRIX BACKGROUND */
-
-let canvas=document.getElementById("matrix");
-
-let ctx=canvas.getContext("2d");
-
-canvas.height=window.innerHeight;
-canvas.width=window.innerWidth;
-
-let letters="01";
-letters=letters.split("");
-
-let fontSize=14;
-
-let columns=canvas.width/fontSize;
-
-let drops=[];
-
-for(let x=0;x<columns;x++)
-drops[x]=1;
-
-function draw(){
-
-ctx.fillStyle="rgba(0,0,0,0.05)";
-ctx.fillRect(0,0,canvas.width,canvas.height);
-
-ctx.fillStyle="#0f0";
-ctx.font=fontSize+"px monospace";
-
-for(let i=0;i<drops.length;i++){
-
-let text=letters[Math.floor(Math.random()*letters.length)];
-
-ctx.fillText(text,i*fontSize,drops[i]*fontSize);
-
-if(drops[i]*fontSize>canvas.height && Math.random()>0.975)
-drops[i]=0;
-
-drops[i]++;
-
-}
-
-}
-
-setInterval(draw,33);
 
 </script>
 
